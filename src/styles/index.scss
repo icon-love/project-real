@@ -1,0 +1,82 @@
+@import './transition.scss';
+
+:root {
+  --sidebar-width: #{$sidebar-width};
+  --sidebar-collapsed-width: #{$sidebar-collapsed-width};
+  --navbar-height: #{$navbar-height};
+  --tags-view-height: #{$tags-view-height};
+  --primary-color: #{$primary-color};
+  --sidebar-bg: #{$sidebar-bg};
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial,
+    sans-serif;
+  font-size: 14px;
+  color: #303133;
+  background-color: #f0f2f5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+// 滚动条美化
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #c0c4cc;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+// 全局通用类
+.app-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// 清除浮动
+.clearfix::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+// nprogress 进度条颜色
+#nprogress .bar {
+  background: #409eff !important;
+}
