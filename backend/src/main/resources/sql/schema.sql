@@ -1,8 +1,10 @@
 -- =====================================================================
 -- 后台管理系统 数据库结构（MySQL 8.0）
 -- 库名：admin_system  字符集：utf8mb4
--- 说明：该文件由 Spring Boot 启动时自动执行（幂等，可重复执行）；
---       也可手动执行：mysql -u root -p < schema.sql
+-- 说明：该文件位于 classpath（src/main/resources/sql/schema.sql），
+--       由 Spring Boot 启动时自动执行（幂等，可重复执行）；
+--       也可手动执行：mysql -u root -p admin_system < schema.sql
+-- 种子数据由后端启动时的 DataInitializer 自动写入（空库才写入）。
 -- =====================================================================
 
 SET NAMES utf8mb4;

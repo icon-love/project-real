@@ -63,7 +63,7 @@ public class DashboardService {
 
         List<Map<String, Object>> list = new ArrayList<>();
         list.add(stat("sales", "今日销售额", salesToday.longValue(), "元", "Money", "#409EFF",
-                trend(salesToday, salesYesterday), "较昨日"));
+                trend(salesToday.longValue(), salesYesterday.longValue()), "较昨日"));
         list.add(stat("orders", "今日订单数", ordersToday, "单", "ShoppingCart", "#67C23A",
                 trend(ordersToday, ordersYesterday), "较昨日"));
         list.add(stat("products", "商品总数", productTotal, "件", "Goods", "#E6A23C",

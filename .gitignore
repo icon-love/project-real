@@ -10,3 +10,14 @@ pnpm-debug.log*
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+# ---------- Java / Maven ----------
+backend/target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+!target/*.jar
+hs_err_pid*
+*.log
+uploads/
+
