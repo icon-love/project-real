@@ -21,12 +21,16 @@ export default defineConfig({
     host: true,
     port: 5174,
     open: false,
-    // 若接入真实后端，把 /api 代理到后端地址即可
+    // 接入真实后端：/api 与 /uploads 都代理到后端地址
     proxy: {
-      // '/api': {
-      //   target: 'http://localhost:8080',
-      //   changeOrigin: true
-      // }
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
+      },
+      '/uploads': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
+      }
     }
   },
   build: {
