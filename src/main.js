@@ -25,8 +25,10 @@ app.use(router)
 app.use(ElementPlus, { locale: zhCn })
 setupDirectives(app)
 
-// 开发环境启用 mock（接入真实后端时移除即可）
-if (import.meta.env.DEV) {
+// 默认启用 mock（开发/生产环境均生效，纯前端演示可正常部署上线）。
+// 接入真实后端时，构建命令带上 VITE_USE_MOCK=false 即可关闭，
+// 并在服务器（如 Nginx）上把 /api 代理到后端地址。
+if (import.meta.env.VITE_USE_MOCK !== 'false') {
   setupMock()
 }
 
