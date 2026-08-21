@@ -27,7 +27,8 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/api/**")
-                .excludePathPatterns("/api/login");
+                // 登录接口与图库图片内容接口（img 标签直连，无 token）放行
+                .excludePathPatterns("/api/login", "/api/gallery/image/*/content");
     }
 
     @Override

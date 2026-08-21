@@ -28,7 +28,6 @@ public class GalleryService {
 
     private final GalleryCategoryMapper categoryMapper;
     private final GalleryImageMapper imageMapper;
-    private final FileStorageService fileStorageService;
 
     // ================= 分类 =================
 
@@ -107,11 +106,11 @@ public class GalleryService {
             if (file.isEmpty()) {
                 continue;
             }
-            String url;
+            byte[] bytes;
             try {
-                url = fileStorageService.save(file);
+                bytes = file.getBytes();
             } catch (IOException e) {
-                throw new BusinessException("文件保存失败");
+                throw new BusinessException("读取文件失败");
             }
             String original = file.getOriginalFilename();
             String name = original != null && original.contains(".")
@@ -120,22 +119,49 @@ public class GalleryService {
             GalleryImage image = new GalleryImage();
             image.setCategoryId(cid);
             image.setName(name);
-            image.setUrl(url);
+            // 图片二进制内容直接存入数据库
+            image.setData(bytes);
+            image.setContentType(resolveContentType(file, original));
             image.setSize(Math.max(1, Math.round(file.getSize() / 1024f)));
             image.setCreateTime(new Date());
+            // url 列 NOT NULL：先占位，insert 后按自增 id 更新为内容接口地址
+            image.setUrl("");
             imageMapper.insert(image);
+            image.setUrl("/api/gallery/image/" + image.getId() + "/content");
+            imageMapper.updateById(image);
             records.add(image);
         }
         return records;
     }
 
+    /** 按 id 获取图片（含二进制内容），供内容接口使用；不存在返回 null */
+    public GalleryImage getImage(Long id) {
+        return id == null ? null : imageMapper.selectById(id);
+    }
+
+    /** 根据 MIME 或扩展名推断内容类型 */
+    private String resolveContentType(MultipartFile file, String original) {
+        String ct = file.getContentType();
+        if (ct != null && !ct.isBlank()) {
+            return ct;
+        }
+        if (original != null) {
+            String lower = original.toLowerCase();
+            if (lower.endsWith(".svg")) return "image/svg+xml";
+            if (lower.endsWith(".png")) return "image/png";
+            if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+            if (lower.endsWith(".gif")) return "image/gif";
+            if (lower.endsWith(".webp")) return "image/webp";
+        }
+        return "application/octet-stream";
+    }
+
     public void deleteImage(Long id) {
-        GalleryImage image = imageMapper.selectById(id);
-        if (image == null) {
+        if (imageMapper.selectById(id) == null) {
             throw new BusinessException("图片不存在");
         }
+        // 内容存于数据库，直接删除记录即可
         imageMapper.deleteById(id);
-        fileStorageService.deleteByUrl(image.getUrl());
     }
 
     public void renameImage(Long id, String name) {

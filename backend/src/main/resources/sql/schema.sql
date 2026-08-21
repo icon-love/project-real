@@ -74,15 +74,17 @@ CREATE TABLE IF NOT EXISTS gallery_category (
 
 -- ---------------- 图片 ----------------
 CREATE TABLE IF NOT EXISTS gallery_image (
-    id          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
-    category_id BIGINT       NOT NULL DEFAULT 1 COMMENT '分类 id',
-    name        VARCHAR(100) NOT NULL COMMENT '图片名称',
-    url         VARCHAR(255) NOT NULL COMMENT '图片地址',
-    size        INT          NOT NULL DEFAULT 0 COMMENT '大小(KB)',
-    create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    id           BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+    category_id  BIGINT       NOT NULL DEFAULT 1 COMMENT '分类 id',
+    name         VARCHAR(100) NOT NULL COMMENT '图片名称',
+    url          VARCHAR(255) NOT NULL COMMENT '图片地址（内容接口 /api/gallery/image/{id}/content）',
+    size         INT          NOT NULL DEFAULT 0 COMMENT '大小(KB)',
+    data         LONGBLOB     NULL COMMENT '图片内容(二进制，存数据库)',
+    content_type VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'MIME 类型',
+    create_time  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     PRIMARY KEY (id),
     KEY idx_category (category_id)
-) ENGINE = InnoDB COMMENT = '图片表';
+) ENGINE = InnoDB COMMENT = '图片表（内容存数据库）';
 
 -- ---------------- 公告 ----------------
 CREATE TABLE IF NOT EXISTS notice (

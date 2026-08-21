@@ -23,10 +23,9 @@ export function getGalleryList(params) {
 }
 
 // 上传图片（multipart）
+// 注意：不要手动设置 Content-Type，交由浏览器自动生成 multipart boundary，否则后端解析失败
 export function uploadImages(data) {
-  return service.post('/gallery/upload', data, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  })
+  return service.post('/gallery/upload', data)
 }
 
 export function deleteGalleryImage(id) {

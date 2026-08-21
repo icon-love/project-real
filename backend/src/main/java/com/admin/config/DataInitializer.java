@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,6 +66,8 @@ public class DataInitializer implements CommandLineRunner {
 
     private static final ZoneId ZONE = ZoneId.of("Asia/Shanghai");
     private static final String DEFAULT_PASSWORD = "123456";
+    private static final String[] SEED_COLORS = {"#409EFF", "#67C23A", "#E6A23C", "#F56C6C",
+            "#909399", "#9C27B0", "#00BCD4", "#FF9800"};
 
     private final SysAdminMapper adminMapper;
     private final SysRoleMapper roleMapper;
@@ -79,6 +82,7 @@ public class DataInitializer implements CommandLineRunner {
     private final TradeOrderMapper tradeOrderMapper;
     private final ProductReviewMapper reviewMapper;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
     @Value("${admin.upload.dir:./uploads}")
     private String uploadDir;
@@ -86,8 +90,12 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
+        // 兼容旧库：gallery_image 表结构迁移（幂等）
+        migrateSchema();
         if (adminMapper.selectCount(null) > 0) {
             log.info("检测到系统已存在数据，跳过种子数据初始化");
+            // 已有数据时仍回填种子图片为数据库存储
+            backfillSeedImages();
             return;
         }
         log.info("开始初始化种子数据……");
@@ -112,10 +120,8 @@ public class DataInitializer implements CommandLineRunner {
         Path dir = Paths.get(uploadDir).toAbsolutePath().normalize();
         Files.createDirectories(dir);
 
-        String[] colors = {"#409EFF", "#67C23A", "#E6A23C", "#F56C6C",
-                "#909399", "#9C27B0", "#00BCD4", "#FF9800"};
         for (int i = 1; i <= 8; i++) {
-            writeIfAbsent(dir, "seed-" + i + ".svg", svg(colors[i - 1], "IMG " + i));
+            writeIfAbsent(dir, "seed-" + i + ".svg", svg(SEED_COLORS[i - 1], "IMG " + i));
         }
         writeIfAbsent(dir, "avatar-admin.svg", svg("#409EFF", "管"));
         writeIfAbsent(dir, "avatar-editor.svg", svg("#67C23A", "李"));
@@ -242,10 +248,71 @@ public class DataInitializer implements CommandLineRunner {
             GalleryImage image = new GalleryImage();
             image.setCategoryId((i % 4) + 1L);
             image.setName(names[i - 1]);
-            image.setUrl("/uploads/seed-" + i + ".svg");
+            // 种子图片内容直接写入数据库
+            image.setData(svg(SEED_COLORS[i - 1], "IMG " + i).getBytes(StandardCharsets.UTF_8));
+            image.setContentType("image/svg+xml");
             image.setSize(60 + i * 23);
             image.setCreateTime(new Date());
+            // url 列 NOT NULL：先占位，insert 后按自增 id 更新为内容接口地址
+            image.setUrl("");
             galleryImageMapper.insert(image);
+            image.setUrl("/api/gallery/image/" + image.getId() + "/content");
+            galleryImageMapper.updateById(image);
+        }
+    }
+
+    // ================= 表结构迁移 / 种子图片回填 =================
+
+    /** 兼容旧库：gallery_image 若缺少 data/content_type 列则补充（幂等） */
+    private void migrateSchema() {
+        try {
+            Integer count = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM information_schema.columns " +
+                    "WHERE table_schema = DATABASE() AND table_name = 'gallery_image' AND column_name = 'data'",
+                    Integer.class);
+            if (count == null || count == 0) {
+                jdbcTemplate.execute("ALTER TABLE gallery_image " +
+                        "ADD COLUMN data LONGBLOB NULL COMMENT '图片内容(二进制)' AFTER url, " +
+                        "ADD COLUMN content_type VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'MIME类型' AFTER data");
+                log.info("已为 gallery_image 表补充 data / content_type 列");
+            }
+        } catch (Exception e) {
+            log.warn("gallery_image 表结构迁移失败（全新库可忽略）: {}", e.getMessage());
+        }
+    }
+
+    /** 将已有库中仅存磁盘路径的种子图片回填为数据库存储 */
+    private void backfillSeedImages() {
+        List<GalleryImage> images = galleryImageMapper.selectList(null);
+        int updated = 0;
+        for (GalleryImage img : images) {
+            if (img.getData() != null) continue;
+            Integer idx = seedIndexFromUrl(img.getUrl());
+            if (idx == null) continue;
+            GalleryImage upd = new GalleryImage();
+            upd.setId(img.getId());
+            upd.setData(svg(SEED_COLORS[idx - 1], "IMG " + idx).getBytes(StandardCharsets.UTF_8));
+            upd.setContentType("image/svg+xml");
+            upd.setUrl("/api/gallery/image/" + img.getId() + "/content");
+            galleryImageMapper.updateById(upd);
+            updated++;
+        }
+        if (updated > 0) {
+            log.info("已将 {} 张种子图片回填到数据库", updated);
+        }
+    }
+
+    /** 从 /uploads/seed-N.svg 提取序号 N */
+    private Integer seedIndexFromUrl(String url) {
+        if (url == null || !url.startsWith("/uploads/seed-")) return null;
+        String rest = url.substring("/uploads/seed-".length());
+        int dot = rest.indexOf('.');
+        if (dot > 0) rest = rest.substring(0, dot);
+        try {
+            int idx = Integer.parseInt(rest);
+            return idx >= 1 && idx <= SEED_COLORS.length ? idx : null;
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 

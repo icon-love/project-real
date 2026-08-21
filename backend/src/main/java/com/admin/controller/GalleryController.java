@@ -5,6 +5,8 @@ import com.admin.entity.GalleryCategory;
 import com.admin.entity.GalleryImage;
 import com.admin.service.GalleryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,6 +79,21 @@ public class GalleryController {
     public Result<Void> deleteImage(@PathVariable Long id) {
         galleryService.deleteImage(id);
         return Result.ok(null, "删除成功");
+    }
+
+    /** 图片内容接口：从数据库读取二进制并返回（img 标签访问，无需鉴权） */
+    @GetMapping("/image/{id}/content")
+    public ResponseEntity<byte[]> imageContent(@PathVariable Long id) {
+        GalleryImage image = galleryService.getImage(id);
+        if (image == null || image.getData() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        String contentType = image.getContentType() != null && !image.getContentType().isBlank()
+                ? image.getContentType()
+                : "application/octet-stream";
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(image.getData());
     }
 
     @PutMapping("/image/{id}")
