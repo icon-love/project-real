@@ -17,7 +17,7 @@
         >
           <template #prefix>
             <el-icon v-if="modelValue" class="mr-1">
-              <component :is="modelValue" />
+              <component :is="resolveIcon(modelValue)" />
             </el-icon>
           </template>
         </el-input>
@@ -42,7 +42,7 @@
           :title="icon"
           @click="handleSelect(icon)"
         >
-          <el-icon :size="18"><component :is="icon" /></el-icon>
+          <el-icon :size="18"><component :is="resolveIcon(icon)" /></el-icon>
         </div>
       </div>
       <div v-if="!filteredIcons.length" class="text-gray-400 text-center py-3">
@@ -59,6 +59,7 @@
  */
 import { ref, computed } from 'vue'
 import * as Icons from '@element-plus/icons-vue'
+import { resolveIcon } from '@/utils/icon'
 
 defineProps({
   modelValue: { type: String, default: '' }

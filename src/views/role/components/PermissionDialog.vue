@@ -27,7 +27,7 @@
       >
         <template #default="{ data }">
           <span class="flex items-center gap-6px">
-            <el-icon><component :is="data.icon || 'Menu'" /></el-icon>
+            <el-icon><component :is="resolveIcon(data.icon)" /></el-icon>
             <span>{{ data.title }}</span>
             <el-tag v-if="data.perms" size="small" type="info">{{ data.perms }}</el-tag>
           </span>
@@ -44,6 +44,7 @@
 import { ref, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import DialogForm from '@/components/DialogForm.vue'
+import { resolveIcon } from '@/utils/icon'
 import { getMenuList } from '@/api/menu'
 import { getRolePermissionIds, setRolePermissions } from '@/api/role'
 

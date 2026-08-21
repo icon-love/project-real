@@ -3,7 +3,7 @@
     <!-- 有子菜单 -> 分组 -->
     <el-sub-menu v-if="hasChildren" :index="resolvePath('')">
       <template #title>
-        <el-icon v-if="icon"><component :is="icon" /></el-icon>
+        <el-icon v-if="icon"><component :is="resolveIcon(icon)" /></el-icon>
         <span>{{ item.meta?.title }}</span>
       </template>
       <SidebarItem
@@ -16,7 +16,7 @@
 
     <!-- 叶子菜单 -->
     <el-menu-item v-else :index="basePath">
-      <el-icon v-if="icon"><component :is="icon" /></el-icon>
+      <el-icon v-if="icon"><component :is="resolveIcon(icon)" /></el-icon>
       <template #title>{{ item.meta?.title }}</template>
     </el-menu-item>
   </template>
@@ -27,6 +27,7 @@
  * 递归侧边栏菜单项（对应课程：侧边菜单开发）
  */
 import { computed } from 'vue'
+import { resolveIcon } from '@/utils/icon'
 
 const props = defineProps({
   item: { type: Object, required: true },

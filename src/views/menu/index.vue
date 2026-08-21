@@ -35,7 +35,7 @@
         <el-table-column label="菜单名称" min-width="220">
           <template #default="{ row }">
             <el-icon class="mr-1" style="vertical-align: -2px">
-              <component :is="row.icon || 'Menu'" />
+              <component :is="resolveIcon(row.icon)" />
             </el-icon>
             <span>{{ row.title }}</span>
             <el-tag v-if="row.component" size="small" class="ml-2">页面</el-tag>
@@ -92,6 +92,7 @@
 import { ref, onMounted, onActivated } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Refresh, RefreshLeft, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { resolveIcon } from '@/utils/icon'
 import { getMenuList, updateMenuStatus, deleteMenu } from '@/api/menu'
 import { resetDb } from '@/mock/db'
 import { useCrud } from '@/composables/useCrud'
