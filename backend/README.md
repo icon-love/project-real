@@ -20,17 +20,24 @@
 ## 快速开始
 
 ```bash
-# 1. 设置数据库连接（按需覆盖，默认 root 空密码）
+# 方式一（推荐）：一键启动（自动设置数据库密码，无需手动 export）
+#   Windows: 双击 start-dev.cmd 或右键 start-dev.ps1 -> 使用 PowerShell 运行
+.\start-dev.ps1
+
+# 方式二：手动设置环境变量后启动
 #    Windows PowerShell:
 $env:DB_HOST = "localhost"
 $env:DB_PORT = "3306"
 $env:DB_NAME = "admin_system"
 $env:DB_USERNAME = "root"
-$env:DB_PASSWORD = "你的密码"        # ← 必填，按实际修改
+$env:DB_PASSWORD = "123456"        # ← 必填，按实际修改
 
-# 2. 启动（首次会自动建库、建表并写入种子数据）
 mvn spring-boot:run
 ```
+
+> 注意：每次**新开终端**都需要重新设置 `DB_PASSWORD`（环境变量不会跨终端保留），
+> 否则会因空密码连不上 MySQL 而启动失败（`Application run failed`）。
+> 建议直接用 `start-dev.cmd` / `start-dev.ps1` 一键启动。
 
 > 国内网络下若依赖下载慢，可在 `~/.m2/settings.xml` 配置阿里云镜像：
 > `<mirror><id>aliyun</id><mirrorOf>central</mirrorOf><url>https://maven.aliyun.com/repository/public</url></mirror>`
